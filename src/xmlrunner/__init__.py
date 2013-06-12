@@ -183,11 +183,8 @@ class _XMLTestResult(_TextTestResult):
             for test_info in tests:
                 testcase = type(test_info.test_method)
 
-                # Ignore module name if it is '__main__'
-                module = testcase.__module__ + '.'
-                if module == '__main__.':
-                    module = ''
-                testcase_name = module + testcase.__name__
+                parts = str(test_info.test_method).translate(None, "()").split(" ")
+                testcase_name = parts[1]
 
                 if not testcase_name in tests_by_testcase:
                     tests_by_testcase[testcase_name] = []
@@ -224,7 +221,7 @@ class _XMLTestResult(_TextTestResult):
         """Returns the test method name.
         """
         test_id = test_method.id()
-        return test_id.split('.')[-1]
+        return str(test_method).translate(None, "()").split(" ")[0]
 
     _test_method_name = staticmethod(_test_method_name)
 
