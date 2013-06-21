@@ -8,13 +8,10 @@ default TextTestRunner.
 import os
 import sys
 import time
+import codecs
 from unittest import TestResult, _TextTestResult, TextTestRunner
-
-try:
-    # Removed in Python 3
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
+# Use unicode version of StringIO
+from io import StringIO
 
 
 class _DelegateIO(object):
@@ -27,8 +24,8 @@ class _DelegateIO(object):
         self.delegate = delegate
 
     def write(self, text):
-        self._captured.write(text)
-        self.delegate.write(text)
+        self._captured.write(unicode(text))
+        self.delegate.write(unicode(text))
 
     def reset(self):
         self._captured = StringIO()
@@ -51,8 +48,8 @@ class _TestInfo(object):
         self.outcome = outcome
         self.elapsed_time = 0
         self.err = err
-        self.stderr = ""
-        self.stdout = ""
+        self.stderr = u""
+        self.stdout = u""
 
     def test_finished(self):
         """Save info that can only be calculated once a test has run.
@@ -75,9 +72,9 @@ class _TestInfo(object):
         method.
         """
         if not self.err:
-            return ''
-        return self.test_result._exc_info_to_string(self.err, \
-            self.test_method)
+            return u''
+        return unicode(self.test_result._exc_info_to_string(self.err, \
+            self.test_method), encoding="utf8", errors="replace")
 
 
 class _XMLTestResult(_TextTestResult):
@@ -199,19 +196,19 @@ class _XMLTestResult(_TextTestResult):
         xml_document.appendChild(testsuite)
 
         testsuite.setAttribute('name', "%s-%s" % (suite_name, outsuffix))
-        testsuite.setAttribute('tests', str(len(tests)))
+        testsuite.setAttribute('tests', unicode(len(tests)))
 
         testsuite.setAttribute('time', '%.3f' % \
             sum(map(lambda e: e.elapsed_time, tests)))
 
         failures = filter(lambda e: e.outcome==_TestInfo.FAILURE, tests)
-        testsuite.setAttribute('failures', str(len(list(failures))))
+        testsuite.setAttribute('failures', unicode(len(list(failures))))
 
         errors = filter(lambda e: e.outcome==_TestInfo.ERROR, tests)
-        testsuite.setAttribute('errors', str(len(list(errors))))
+        testsuite.setAttribute('errors', unicode(len(list(errors))))
         
         skipped = filter(lambda e: e.outcome==_TestInfo.SKIP, tests)
-        testsuite.setAttribute('skipped', str(len(list(skipped))))
+        testsuite.setAttribute('skipped', unicode(len(list(skipped))))
 
         return testsuite
 
@@ -237,7 +234,6 @@ class _XMLTestResult(_TextTestResult):
         testcase.setAttribute('time', '%.3f' % test_result.elapsed_time)
         stdout.write(test_result.stdout)
         stderr.write(test_result.stderr)
-        
 
         if (test_result.outcome != _TestInfo.SUCCESS):
             elem_name = ('failure', 'error','skipped')[test_result.outcome-1]
@@ -246,12 +242,12 @@ class _XMLTestResult(_TextTestResult):
             
             if test_result.outcome == _TestInfo.SKIP:
                 failure.setAttribute('message', test_result.err)
-                stderr.write(test_result.err)
+                stderr.write(unicode(test_result.err))
             else:
                 failure.setAttribute('type', test_result.err[0].__name__)
-                failure.setAttribute('message', str(test_result.err[1]))
+                failure.setAttribute('message', unicode(test_result.err[1]))
 
-                error_info = str(test_result.get_error_info())
+                error_info = test_result.get_error_info()
                 failureText = xml_document.createCDATASection(error_info)
                 failure.appendChild(failureText)
 
@@ -295,8 +291,9 @@ class _XMLTestResult(_TextTestResult):
             stderr = StringIO()
             for test in tests:
                 _XMLTestResult._report_testcase(suite, test, testsuite, doc, stdout, stderr)
+
             _XMLTestResult._report_output(test_runner, testsuite, doc, stdout, stderr)
-            xml_content = doc.toprettyxml(indent='\t')
+            xml_content = doc.toprettyxml(indent=u'\t', encoding="utf8")
 
             if type(test_runner.output) is str:
                 if test_runner.outsuffix:
@@ -306,7 +303,7 @@ class _XMLTestResult(_TextTestResult):
                 else:
                     report_file = open('%s%sTEST-%s.xml' % \
                         (test_runner.output, os.sep, suite), 'w')
-                
+                    
                 try:
                     report_file.write(xml_content)
                 finally:
