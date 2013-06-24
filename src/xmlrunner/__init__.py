@@ -293,7 +293,7 @@ class _XMLTestResult(_TextTestResult):
                 _XMLTestResult._report_testcase(suite, test, testsuite, doc, stdout, stderr)
 
             _XMLTestResult._report_output(test_runner, testsuite, doc, stdout, stderr)
-            xml_content = doc.toprettyxml(indent=u'\t', encoding="utf8")
+            xml_content = doc.toprettyxml(indent=u'\t', encoding="UTF-8")
 
             if type(test_runner.output) is str:
                 if test_runner.outsuffix:
