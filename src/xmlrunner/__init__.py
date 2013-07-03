@@ -296,18 +296,26 @@ class _XMLTestResult(_TextTestResult):
             xml_content = doc.toprettyxml(indent=u'\t', encoding="UTF-8")
 
             if type(test_runner.output) is str:
-                if test_runner.outsuffix:
-                    report_file = open('%s%sTEST-%s-%s.xml' % \
-                        (test_runner.output, os.sep, suite, \
-                         test_runner.outsuffix), 'w')
+                if test_runner.filenames_as_classnames:
+                    suffix = suite.split(".")[-1]
                 else:
-                    report_file = open('%s%sTEST-%s.xml' % \
-                        (test_runner.output, os.sep, suite), 'w')
-                    
+                    suffix = suite
+                if test_runner.outsuffix:
+                    filename = '%s%sTEST-%s-%s.xml' % \
+                        (test_runner.output, os.sep, suffix[:100], \
+                         test_runner.outsuffix)
+                else:
+                    filename = '%s%sTEST-%s.xml' % \
+                        (test_runner.output, os.sep, suffix[:100])
                 try:
-                    report_file.write(xml_content)
+                    report_file = open(filename, 'w')
+                    try:
+                        
+                        report_file.write(xml_content)
+                    finally:
+                        report_file.close()
                 finally:
-                    report_file.close()
+                    pass
             else:
                 # Assume that test_runner.output is a stream
                 test_runner.output.write(xml_content)
@@ -318,10 +326,11 @@ class XMLTestRunner(TextTestRunner):
     """
     resultclass = _XMLTestResult
     def __init__(self, output='.', outsuffix = None, stream=sys.stderr, \
-        descriptions=True, verbosity=1, elapsed_times=True):
+        descriptions=True, verbosity=1, elapsed_times=True, filenames_as_classnames=True):
         TextTestRunner.__init__(self, stream, descriptions, verbosity)
         self.verbosity = verbosity
         self.output = output
+        self.filenames_as_classnames = filenames_as_classnames
         if outsuffix!=None:
           self.outsuffix = outsuffix
         else:
