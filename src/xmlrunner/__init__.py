@@ -24,8 +24,11 @@ class _DelegateIO(object):
         self.delegate = delegate
 
     def write(self, text):
-        self._captured.write(unicode(text, encoding="UTF-8", errors='ignore'))
-        self.delegate.write(unicode(text, encoding="UTF-8", errors='ignore'))
+        if type(text)!=unicode:
+            text=unicode(text, encoding="UTF-8", errors="ignore")
+            
+        self._captured.write(text)
+        self.delegate.write(text)
 
     def reset(self):
         self._captured = StringIO()
