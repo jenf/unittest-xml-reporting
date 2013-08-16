@@ -77,7 +77,7 @@ class _TestInfo(object):
         if not self.err:
             return u''
         return unicode(self.test_result._exc_info_to_string(self.err, \
-            self.test_method), encoding="utf8", errors="replace")
+            self.test_method), encoding="ascii", errors="ignore")
 
 
 class _XMLTestResult(_TextTestResult):
