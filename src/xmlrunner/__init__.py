@@ -18,7 +18,13 @@ class _DelegateIO(object):
     """This class defines an object that captures whatever is written to
     a stream or file.
     """
-
+    
+    # Replace control characters with Unicode "replacement character"
+    translate = {0: 0xFFFD, 1: 0xFFFD, 2: 0xFFFD, 3: 0xFFFD, 4: 0xFFFD, 5: 0xFFFD, 6: 0xFFFD, 7: 0xFFFD,
+                 8: 0xFFFD, 11: 0xFFFD, 12: 0xFFFD, 14: 0xFFFD,15: 0xFFFD, 16: 0xFFFD, 17: 0xFFFD,
+                 18: 0xFFFD, 19: 0xFFFD, 20: 0xFFFD, 21: 0xFFFD, 22: 0xFFFD, 23: 0xFFFD, 24: 0xFFFD,
+                 25: 0xFFFD, 26: 0xFFFD, 27: 0xFFFD, 28: 0xFFFD, 29: 0xFFFD, 30: 0xFFFD, 31: 0xFFFD}
+    
     def __init__(self, delegate):
         self._captured = StringIO()
         self.delegate = delegate
@@ -26,6 +32,9 @@ class _DelegateIO(object):
     def write(self, text):
         if type(text)!=unicode:
             text=unicode(text, encoding="UTF-8", errors="ignore")
+            
+        # Remove unprintable characters
+        text = text.translate(self.translate)
             
         self._captured.write(text)
         self.delegate.write(text)
